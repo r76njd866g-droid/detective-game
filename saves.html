@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Сохранения · Архив незакрытых дел</title>
+  <style>
+    :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#101613;color:#eae3d7;font:15px/1.7 system-ui,sans-serif}main{max-width:960px;margin:auto;padding:30px 22px}h1,h2{font-family:Georgia,serif;font-weight:400}h1{font-size:38px}h2{font-size:23px}a{color:#d3b783}button,.btn{font:inherit;cursor:pointer;border:1px solid #b7975c66;border-radius:4px;padding:10px 14px;background:#d3b783;color:#27251e;text-decoration:none;display:inline-block}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #dbc18c;outline-offset:4px}.controls{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}.entry{border:1px solid #c4a77444;padding:20px;margin:18px 0}.entry nav{display:flex;gap:14px;flex-wrap:wrap}.muted{color:#a9a89c;font-size:13px}#status{white-space:pre-line;color:#e1cca3}input{max-width:100%}summary{cursor:pointer}code{overflow-wrap:anywhere}
+  </style>
+</head>
+<body><main>
+  <h1>Сохранения расследования</h1>
+  <p>Повтор главы и изменение решения на складе создают отдельное прохождение. Предыдущий путь остаётся в списке. Выберите главу нужного пути, чтобы продолжить.</p>
+  <p class="muted">Старые записи браузера сохраняются без изменений. Восстановленные записи сгруппированы по ветке: старый формат не позволяет установить, к какому повторному прохождению относилась каждая глава.</p>
+  <div class="controls"><button id="export">Экспорт всех прохождений</button><a id="back" class="btn" href="index.html">Вернуться к игре</a></div>
+  <label for="import">Импорт файла прогресса JSON</label><br>
+  <input id="import" type="file" accept="application/json,.json">
+  <p class="muted">Импорт добавляет новые прохождения. Существующие записи не заменяются. Файл экспорта содержит сюжетные сведения. Для переноса между браузерами или адресами сначала скачайте его по прежнему адресу игры.</p>
+  <p id="status" role="status" aria-live="polite"></p>
+  <section id="runs" aria-label="Сохранённые прохождения"></section>
+  <details><summary>Версии и восстановление</summary><p>Каждая успешная запись сохраняется отдельной версией. Экспорт включает исходные старые и повреждённые записи для технического восстановления. В списке также показываются параллельные версии, если две вкладки записали прогресс одновременно. Эта страница ничего не удаляет.</p></details>
+</main>
+<script src="save-specs.js"></script><script src="save-store.js"></script>
+<script>
+'use strict';
+const store=DetectiveSaves.store;
+store.migrate();
+const params=new URL(location.href).searchParams;
+const chapterUrl=(n,run,revision)=>`${n===2?'index':`chapter${n}`}.html?run=${encodeURIComponent(run)}&revision=${encodeURIComponent(revision)}`;
+function render(){
+  const runs=store.list(),container=document.querySelector('#runs');container.replaceChildren();
+  for(const record of runs){
+    const entry=document.createElement('article');entry.className='entry';
+    const title=document.createElement('h2');title.textContent=record.data.label;
+    const meta=document.createElement('p');meta.className='muted';meta.textContent=`${record.data.branch==='originals'?'Путь: оригиналы':'Путь: Белов'} · ${record.createdAt} · ID: ${record.runId}`;
+    const progress=document.createElement('p');progress.textContent='Сохранённые главы: '+(Object.keys(record.data.chapters).join(', ')||'пока нет');
+    const nav=document.createElement('nav');nav.setAttribute('aria-label','Продолжить выбранный путь');
+    for(let n=2;n<=8;n++){const a=document.createElement('a');a.href=chapterUrl(n,record.runId,record.id);a.textContent=`Глава ${n}`;nav.append(a);}
+    entry.append(title,meta,progress,nav);container.append(entry);
+  }
+  if(!runs.length)container.textContent='Сохранённых прохождений пока нет.';
+  const current=runs.find(r=>r.runId===params.get('run'))||runs[0];
+  if(current)document.querySelector('#back').href=chapterUrl(Math.max(2,...Object.keys(current.data.chapters).map(Number)),current.runId,current.id);
+  if(store.warnings.length)document.querySelector('#status').textContent=store.warnings.join('\n');
+}
+document.querySelector('#export').onclick=()=>DetectiveSaves.download(store.exportAll());
+document.querySelector('#import').onchange=async event=>{
+  const file=event.target.files[0];if(!file)return;
+  try{
+    if(file.size>20*1024*1024)throw Error('Файл превышает 20 МБ');
+    const input=JSON.parse(await file.text());
+    const imported=store.importProgress(input);render();
+    document.querySelector('#status').textContent=`Добавлено прохождений: ${imported.length}. Прежние записи сохранены.`;
+  }catch(error){render();document.querySelector('#status').textContent='Импорт не завершён: '+error.message+'. Существующие записи не изменены.';}
+  event.target.value='';
+};
+render();
+</script></body></html>

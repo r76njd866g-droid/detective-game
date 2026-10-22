@@ -1,0 +1,781 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:detective-game:proposed-case:1",
+  "title": "Proposed authoring contract; not yet connected to the game",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contentVersion",
+    "id",
+    "title",
+    "profile",
+    "chapters",
+    "locations",
+    "characters",
+    "evidence",
+    "dialogues",
+    "events",
+    "deductions",
+    "decisions",
+    "endings",
+    "claims"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "contentVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "id": {
+      "$ref": "#/$defs/id"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "$ref": "#/$defs/profile"
+    },
+    "chapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/chapter"
+      }
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/location"
+      }
+    },
+    "characters": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/character"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "dialogues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dialogue"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "deductions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/deduction"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/decision"
+      }
+    },
+    "endings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/ending"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    },
+    "authorFacts": {
+      "type": "object",
+      "description": "Author-only facts; never expose directly through player UI",
+      "additionalProperties": {
+        "$ref": "#/$defs/scalar"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]*$",
+      "maxLength": 100
+    },
+    "ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/id"
+      }
+    },
+    "scalar": {
+      "type": [
+        "string",
+        "number",
+        "boolean",
+        "null"
+      ]
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "all"
+          ],
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/condition"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "any"
+          ],
+          "properties": {
+            "any": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/condition"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "not"
+          ],
+          "properties": {
+            "not": {
+              "$ref": "#/$defs/condition"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hasEvidence"
+          ],
+          "properties": {
+            "hasEvidence": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hasDeduction"
+          ],
+          "properties": {
+            "hasDeduction": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "flagEquals"
+          ],
+          "properties": {
+            "flagEquals": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "value"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/$defs/id"
+                },
+                "value": {
+                  "$ref": "#/$defs/scalar"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "evidenceId"
+          ],
+          "properties": {
+            "type": {
+              "const": "discoverEvidence"
+            },
+            "evidenceId": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "flagId",
+            "value"
+          ],
+          "properties": {
+            "type": {
+              "const": "setFlag"
+            },
+            "flagId": {
+              "$ref": "#/$defs/id"
+            },
+            "value": {
+              "$ref": "#/$defs/scalar"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "ticks"
+          ],
+          "properties": {
+            "type": {
+              "const": "advanceTime"
+            },
+            "ticks": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "evidenceId",
+            "available"
+          ],
+          "properties": {
+            "type": {
+              "const": "setEvidenceAvailability"
+            },
+            "evidenceId": {
+              "$ref": "#/$defs/id"
+            },
+            "available": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/effect"
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "capabilities"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/ids"
+        },
+        "eraDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "chapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "locationIds",
+        "completion"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "legacyUrl": {
+          "type": "string",
+          "pattern": "^(index|chapter[3-8])\\.html$"
+        },
+        "locationIds": {
+          "$ref": "#/$defs/ids"
+        },
+        "completion": {
+          "$ref": "#/$defs/condition"
+        },
+        "nextChapterIds": {
+          "$ref": "#/$defs/ids"
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "requires",
+        "effects"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string"
+        },
+        "requires": {
+          "$ref": "#/$defs/condition"
+        },
+        "effects": {
+          "$ref": "#/$defs/effects"
+        },
+        "capability": {
+          "$ref": "#/$defs/id"
+        },
+        "once": {
+          "type": "boolean"
+        },
+        "zone": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "requires",
+        "actions"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "asset": {
+          "type": "string"
+        },
+        "requires": {
+          "$ref": "#/$defs/condition"
+        },
+        "characterIds": {
+          "$ref": "#/$defs/ids"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          }
+        }
+      }
+    },
+    "character": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "dialogueId": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "body",
+        "kind",
+        "source",
+        "initialAssessment"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "document",
+            "object",
+            "testimony",
+            "recording",
+            "digital",
+            "forensic"
+          ]
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "form"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/id"
+            },
+            "locationId": {
+              "$ref": "#/$defs/id"
+            },
+            "characterId": {
+              "$ref": "#/$defs/id"
+            },
+            "derivedFromEvidenceId": {
+              "$ref": "#/$defs/id"
+            },
+            "form": {
+              "enum": [
+                "original",
+                "copy",
+                "observation",
+                "statement",
+                "analysis"
+              ]
+            }
+          }
+        },
+        "initialAssessment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "authenticity",
+            "reliability"
+          ],
+          "properties": {
+            "authenticity": {
+              "enum": [
+                "unchecked",
+                "verified",
+                "disputed",
+                "refuted"
+              ]
+            },
+            "reliability": {
+              "enum": [
+                "unchecked",
+                "supported",
+                "disputed",
+                "refuted"
+              ]
+            }
+          }
+        },
+        "claimIds": {
+          "$ref": "#/$defs/ids"
+        },
+        "verificationActionIds": {
+          "$ref": "#/$defs/ids"
+        }
+      }
+    },
+    "dialogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "characterId",
+        "startNodeId",
+        "nodes"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "characterId": {
+          "$ref": "#/$defs/id"
+        },
+        "startNodeId": {
+          "$ref": "#/$defs/id"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/dialogueNode"
+          }
+        }
+      }
+    },
+    "dialogueNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "choices"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "type": "string"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "label",
+              "requires",
+              "effects"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "label": {
+                "type": "string"
+              },
+              "requires": {
+                "$ref": "#/$defs/condition"
+              },
+              "effects": {
+                "$ref": "#/$defs/effects"
+              },
+              "presentEvidenceId": {
+                "$ref": "#/$defs/id"
+              },
+              "nextNodeId": {
+                "$ref": "#/$defs/id"
+              }
+            }
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "type": "string"
+        },
+        "timeText": {
+          "type": "string"
+        },
+        "locationId": {
+          "$ref": "#/$defs/id"
+        },
+        "characterIds": {
+          "$ref": "#/$defs/ids"
+        }
+      }
+    },
+    "deduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "requires",
+        "relations"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "requires": {
+          "$ref": "#/$defs/condition"
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "fromId",
+              "toId",
+              "type"
+            ],
+            "properties": {
+              "fromId": {
+                "$ref": "#/$defs/id"
+              },
+              "toId": {
+                "$ref": "#/$defs/id"
+              },
+              "type": {
+                "enum": [
+                  "supports",
+                  "contradicts",
+                  "precedes",
+                  "presentAt",
+                  "transferredTo"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "prompt",
+        "choices"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/action"
+          }
+        }
+      }
+    },
+    "ending": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "body",
+        "requires",
+        "priority"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "requires": {
+          "$ref": "#/$defs/condition"
+        },
+        "priority": {
+          "type": "integer"
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "statement"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "statement": {
+          "type": "string"
+        },
+        "characterIds": {
+          "$ref": "#/$defs/ids"
+        },
+        "eventIds": {
+          "$ref": "#/$defs/ids"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:detective-game:progress:2",
+  "title": "Portable progress envelope, v2",
+  "description": "Structural contract. save-store.js additionally validates chapter IDs, enum domains, deduction prerequisites, completion and branch consistency.",
+  "type": "object",
+  "required": ["format", "schemaVersion", "exportedAt", "runs", "raw"],
+  "additionalProperties": false,
+  "properties": {
+    "format": {"const": "detective-game-progress"},
+    "schemaVersion": {"const": 2},
+    "exportedAt": {"type": "string"},
+    "runs": {"type": "array", "items": {"type": "object", "required": ["data"], "additionalProperties": false, "properties": {"data": {"$ref": "#/$defs/run"}}}},
+    "raw": {"type": "object", "additionalProperties": {"type": ["string", "null"]}}
+  },
+  "$defs": {
+    "run": {
+      "type": "object", "additionalProperties": false, "required": ["label", "branch", "chapters"],
+      "properties": {
+        "label": {"type": "string", "maxLength": 200},
+        "branch": {"enum": ["originals", "belov"]},
+        "chapters": {"type": "object", "propertyNames": {"pattern": "^[2-8]$"}, "additionalProperties": {"$ref": "#/$defs/chapter"}}
+      }
+    },
+    "chapter": {
+      "type": "object", "required": ["clues", "deductions"],
+      "properties": {
+        "clues": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "deductions": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    }
+  }
+}
