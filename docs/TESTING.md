@@ -5,8 +5,12 @@
 ```sh
 node tests/saves.test.js
 python tests/static_check.py
-python tests/browser_check.py
+python tests/story_check.py
+node tests/browser_check.mjs
+node tests/mobile_layout.mjs   # --shots work/shots сохраняет снимки экранов
 ```
+
+`browser_check.mjs` и `mobile_layout.mjs` используют Playwright для Node (в среде он уже установлен). Python-версия `browser_check.py` сохранена для окружений с Python-пакетом Playwright. После намеренного изменения текста или вёрстки эталон для `static_check.py` пересчитывается командой `python tools/update_baseline.py`. Мобильный блок стилей правится в `tools/mobile_fit.css` и раскладывается по главам командой `python tools/apply_mobile_fit.py`.
 
 Первые две команды не требуют сторонних пакетов. Браузерный сценарий использует Playwright для Python и Chromium как инструменты разработки, без изменения зависимостей игры. В рабочей среде они уже доступны. В другом окружении их устанавливают отдельно; путь браузера можно передать через `CHROMIUM_PATH`. Тест поднимает временный HTTP-сервер на свободном loopback-порту, создаёт изолированные браузерные контексты и не обращается к действующему сайту. Выгрузки и результаты находятся в игнорируемом `work/`.
 

@@ -1,0 +1,26 @@
+/* mobile-fit: keeps the scene undistorted on phones, centres enlarged touch areas and
+   lets crowded headers wrap. Same block in every chapter (see tools/apply_mobile_fit.py). */
+.scene-frame .hotspot{min-width:0;min-height:0}
+.game-header .tiny-button,.game-header a.tiny-button{min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center}
+.chapter-nav a,.chapter-nav .tiny-button,.place-nav .chapter-link{min-height:36px;display:inline-flex;align-items:center}
+@media(min-width:601px){.intro-copy{max-height:100dvh;overflow:auto}}
+@media(pointer:coarse),(max-width:600px){
+  .scene-frame .hotspot:before{content:'';position:absolute;left:50%;top:50%;width:max(100%,40px);height:max(100%,40px);transform:translate(-50%,-50%)}
+}
+.scene-column{container-type:size;--cap:40px}
+.scene-frame{flex:0 0 auto;width:min(100%,calc((100cqh - var(--cap))*1.5))!important;height:auto!important;max-height:none!important;aspect-ratio:3/2!important;align-self:center}
+.scene-caption{flex:0 0 auto;width:min(100%,calc((100cqh - var(--cap))*1.5))!important;align-self:center}
+@media(max-width:1000px){.scene-column{--cap:58px}}
+@media(max-width:600px){
+  .game-header{height:auto;min-height:72px;flex-wrap:wrap;row-gap:8px;column-gap:10px}
+  .game-header .header-right{margin-left:auto;flex-wrap:nowrap}
+}
+@media(max-height:520px) and (orientation:landscape){
+  .scene-column{--cap:26px;padding:6px 12px}
+  .game-header{height:auto;min-height:0;padding:6px 14px}
+  .game-header .brand .eyebrow,.route-caption,.chapter-nav span{display:none}
+  .game-header .brand h1{font-size:15px;max-width:none;margin:0}
+  .chapter-nav,.place-nav{min-height:0;height:auto;padding:4px 14px;flex-wrap:nowrap}
+  .scene-caption{height:24px;padding:6px 2px 0;font-size:10px;line-height:1.4;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}
+  .scene-caption span{overflow:hidden;text-overflow:ellipsis;max-width:none}
+}
