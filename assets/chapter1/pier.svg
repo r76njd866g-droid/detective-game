@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1000" width="1500" height="1000">
+<title>Причал у канала, 19 октября, 05:15, туман</title>
+<style>
+  .flicker{animation:flicker 4.2s infinite steps(1)}
+  @keyframes flicker{0%,100%{opacity:1}7%{opacity:.35}9%{opacity:1}41%{opacity:.9}43%{opacity:.25}44%{opacity:.85}72%{opacity:1}74%{opacity:.4}}
+  .fog{animation:drift 26s linear infinite alternate}
+  .fog2{animation:drift 34s linear infinite alternate-reverse}
+  @keyframes drift{from{transform:translateX(-60px)}to{transform:translateX(60px)}}
+  @media (prefers-reduced-motion:reduce){.flicker,.fog,.fog2{animation:none}}
+</style>
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1419"/><stop offset=".6" stop-color="#1c2a30"/><stop offset="1" stop-color="#26363b"/></linearGradient>
+  <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d2b30"/><stop offset="1" stop-color="#091012"/></linearGradient>
+  <linearGradient id="plank" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3026"/><stop offset="1" stop-color="#1a140e"/></linearGradient>
+  <radialGradient id="lamp" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe2a8" stop-opacity=".9"/><stop offset=".25" stop-color="#ffc775" stop-opacity=".35"/><stop offset="1" stop-color="#ffc775" stop-opacity="0"/></radialGradient>
+  <linearGradient id="fogG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb0b4" stop-opacity="0"/><stop offset=".5" stop-color="#9fb0b4" stop-opacity=".28"/><stop offset="1" stop-color="#9fb0b4" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vig" cx=".5" cy=".5" r=".75"><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".8"/></radialGradient>
+  <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5a4128"/><stop offset=".5" stop-color="#6e5131"/><stop offset="1" stop-color="#4a331e"/></linearGradient>
+  <filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blur3"><feGaussianBlur stdDeviation="3"/></filter>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="9"/><feColorMatrix values="0 0 0 0 .6  0 0 0 0 .65  0 0 0 0 .68  0 0 0 .08 0"/></filter>
+</defs>
+<rect width="1500" height="1000" fill="url(#sky)"/>
+<!-- far warehouse silhouettes -->
+<g fill="#121b1f" opacity=".85"><path d="M0 380 H220 V300 H300 V380 H520 V330 L600 290 L680 330 V380 H760 V420 H0Z"/><path d="M980 400 H1500 V320 H1380 V280 H1260 V320 H1120 V360 H980Z"/></g>
+<g fill="#e9b96b" opacity=".35"><rect x="90" y="340" width="12" height="16"/><rect x="560" y="345" width="10" height="14"/><rect x="1300" y="310" width="12" height="16"/></g>
+<!-- water -->
+<rect x="0" y="420" width="1500" height="580" fill="url(#water)"/>
+<g stroke="#5d7177" stroke-opacity=".25" stroke-width="2"><path d="M60 470h120M300 500h90M820 460h140M1060 520h120M1250 480h160M200 560h80M980 600h90"/></g>
+<!-- moored boat silhouette -->
+<path d="M1040 470 H1330 L1300 505 H1070Z" fill="#0d1416"/><rect x="1150" y="420" width="70" height="50" fill="#0d1416"/><rect x="1180" y="330" width="6" height="95" fill="#0d1416"/>
+<!-- lamp post -->
+<rect x="400" y="170" width="14" height="420" fill="#141a1c"/>
+<path d="M380 170 H434 L424 140 H390Z" fill="#141a1c"/>
+<g class="flicker">
+  <circle cx="407" cy="182" r="190" fill="url(#lamp)"/>
+  <rect x="393" y="172" width="28" height="22" fill="#ffd690"/>
+  <ellipse cx="420" cy="740" rx="240" ry="40" fill="#ffc775" opacity=".12" filter="url(#soft)"/>
+</g>
+<!-- pier planks in perspective -->
+<path d="M180 1000 L520 560 H1020 L1360 1000Z" fill="url(#plank)"/>
+<g stroke="#120d09" stroke-width="3" opacity=".8">
+  <path d="M540 585H1000M500 620H1040M455 670H1085M395 740H1140M320 830H1205M230 940H1290"/>
+  <path d="M770 560V1000"/>
+</g>
+<g fill="#1a140e"><rect x="500" y="540" width="26" height="70"/><rect x="996" y="540" width="26" height="70"/><rect x="170" y="880" width="40" height="120"/><rect x="1310" y="880" width="40" height="120"/></g>
+<!-- the crate with a torn seal -->
+<g transform="translate(610 560)">
+  <ellipse cx="160" cy="250" rx="200" ry="24" fill="#000" opacity=".45"/>
+  <path d="M0 70 L60 20 H330 L270 70Z" fill="#7a5a36"/>
+  <rect x="0" y="70" width="270" height="180" fill="url(#wood)"/>
+  <path d="M270 70 L330 20 V200 L270 250Z" fill="#3e2b19"/>
+  <g stroke="#2b1d10" stroke-width="3"><path d="M0 130H270M0 190H270M90 70V250M180 70V250"/><path d="M270 130 L330 85M270 190 L330 145"/></g>
+  <rect x="96" y="150" width="78" height="34" fill="#c9a964"/>
+  <text x="135" y="174" font-family="Georgia,serif" font-size="20" fill="#2a2116" text-anchor="middle">Р-8</text>
+  <!-- broken wax seal and loose string -->
+  <path d="M120 70 C126 96 118 112 132 130" stroke="#d9cfb8" stroke-width="3" fill="none"/>
+  <path d="M150 70 C160 92 176 100 196 92" stroke="#d9cfb8" stroke-width="3" fill="none"/>
+  <path d="M118 104 a14 14 0 0 1 24 -8 l-8 8 6 10 a14 14 0 0 1 -22 -10z" fill="#8f1d1d"/>
+  <path d="M150 112 l12 -4 4 10 -10 6z" fill="#8f1d1d"/>
+</g>
+<!-- figure barely visible in the fog -->
+<g opacity=".38" filter="url(#blur3)"><ellipse cx="1040" cy="520" rx="22" ry="26" fill="#0b1012"/><path d="M1012 540 Q1040 525 1068 540 L1078 640 H1002Z" fill="#0b1012"/></g>
+<!-- fog layers -->
+<g class="fog"><rect x="-100" y="380" width="1700" height="260" fill="url(#fogG)"/></g>
+<g class="fog2"><rect x="-100" y="560" width="1700" height="320" fill="url(#fogG)" opacity=".8"/></g>
+<!-- hand with the wet telegram -->
+<g transform="translate(1110 760) rotate(-10)">
+  <path d="M0 40 H300 L290 230 H10Z" fill="#d7ccb2"/>
+  <path d="M0 40 H300 L298 62 H2Z" fill="#b9ab89"/>
+  <g fill="#8d9a9e" opacity=".35"><circle cx="80" cy="140" r="40"/><circle cx="200" cy="190" r="50"/><circle cx="250" cy="100" r="30"/></g>
+  <text x="150" y="118" font-family="ui-monospace,Menlo,monospace" font-size="26" fill="#2d2a24" text-anchor="middle" letter-spacing="3">...БЕЛОВУ...</text>
+  <g stroke="#6b675e" stroke-width="3" opacity=".35"><path d="M30 150H140M170 150H270M40 175H110M150 180H250"/></g>
+  <path d="M-40 260 Q-20 170 40 160 Q70 158 70 190 L60 240 Q20 290 -40 300Z" fill="#2a211b"/>
+</g>
+<rect width="1500" height="1000" fill="url(#vig)"/>
+<rect width="1500" height="1000" filter="url(#grain)"/>
+</svg>

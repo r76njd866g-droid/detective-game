@@ -26,6 +26,7 @@
 const store=DetectiveSaves.store;
 store.migrate();
 const params=new URL(location.href).searchParams;
+const ROMAN=['','I','II','III','IV','V','VI','VII','VIII'];
 const chapterUrl=(n,run,revision)=>`${n===2?'index':`chapter${n}`}.html?run=${encodeURIComponent(run)}&revision=${encodeURIComponent(revision)}`;
 function render(){
   const runs=store.list(),container=document.querySelector('#runs');container.replaceChildren();
@@ -35,12 +36,12 @@ function render(){
     const meta=document.createElement('p');meta.className='muted';meta.textContent=`${record.data.branch==='originals'?'Путь: оригиналы':'Путь: Белов'} · ${record.createdAt} · ID: ${record.runId}`;
     const progress=document.createElement('p');progress.textContent='Сохранённые главы: '+(Object.keys(record.data.chapters).join(', ')||'пока нет');
     const nav=document.createElement('nav');nav.setAttribute('aria-label','Продолжить выбранный путь');
-    for(let n=2;n<=8;n++){const a=document.createElement('a');a.href=chapterUrl(n,record.runId,record.id);a.textContent=`Глава ${n}`;nav.append(a);}
+    for(let n=1;n<=8;n++){const a=document.createElement('a');a.href=chapterUrl(n,record.runId,record.id);a.textContent=`Глава ${ROMAN[n]}`;nav.append(a);}
     entry.append(title,meta,progress,nav);container.append(entry);
   }
   if(!runs.length)container.textContent='Сохранённых прохождений пока нет.';
   const current=runs.find(r=>r.runId===params.get('run'))||runs[0];
-  if(current)document.querySelector('#back').href=chapterUrl(Math.max(2,...Object.keys(current.data.chapters).map(Number)),current.runId,current.id);
+  if(current)document.querySelector('#back').href=chapterUrl(Math.max(1,...Object.keys(current.data.chapters).map(Number)),current.runId,current.id);
   if(store.warnings.length)document.querySelector('#status').textContent=store.warnings.join('\n');
 }
 document.querySelector('#export').onclick=()=>DetectiveSaves.download(store.exportAll());

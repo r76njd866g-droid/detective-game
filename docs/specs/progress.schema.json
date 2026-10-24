@@ -19,7 +19,7 @@
       "properties": {
         "label": {"type": "string", "maxLength": 200},
         "branch": {"enum": ["originals", "belov"]},
-        "chapters": {"type": "object", "propertyNames": {"pattern": "^[2-8]$"}, "additionalProperties": {"$ref": "#/$defs/chapter"}}
+        "chapters": {"type": "object", "propertyNames": {"pattern": "^[1-8]$"}, "additionalProperties": {"$ref": "#/$defs/chapter"}}
       }
     },
     "chapter": {

@@ -7,6 +7,7 @@
   const plain = v => v !== null && typeof v === 'object' && !Array.isArray(v);
   const clone = v => JSON.parse(JSON.stringify(v));
   const specs = {
+    1: {defaults:{clues:[],deductions:[],prologue:null,phone:null,scraps:[],burned:0,bin:false,cache:false,route:null,finished:false,started:false}, clues:['ledger','glass','paper','booking','note'], pairs:{fresh:['ledger','glass']}},
     2: {defaults:{clues:[],deductions:[],key:false,cabinet:false,finished:false,route:null}, clues:['report','notice','clock','power','typewriter','call','record'], pairs:{date:['report','notice'],time:['clock','power'],departure:['typewriter','call']}},
     3: {defaults:{clues:[],deductions:[],scene:'station',first:'station',dialogue:[],finished:false,board:{}}, clues:['ticket','copy','dispatch','timetable','witness','invoice','telegram'], pairs:{identity:['copy','witness'],cargo:['dispatch','invoice'],destination:['timetable','telegram']}},
     4: {defaults:{clues:['invoice'],deductions:[],crate:false,plan:null,finished:null,seenOutcomes:[],started:false}, clues:['invoice','manifest','loading','departure','phone'], pairs:{cargo:['invoice','manifest'],split:['loading','departure']}}
@@ -22,6 +23,14 @@
     if (!ids(result.clues, spec.clues) || !ids(result.deductions, Object.keys(spec.pairs))) throw Error(`Неизвестные улики или выводы главы ${n}`);
     for (const id of result.deductions) if (!spec.pairs[id].every(x => result.clues.includes(x))) throw Error(`Вывод без улик: ${id}`);
     for (const [k,v] of Object.entries(spec.defaults)) if (typeof v === 'boolean' && typeof result[k] !== 'boolean') throw Error(`Некорректное поле ${k}`);
+    if (n === 1) {
+      const pick = (v, list) => v === null || list.includes(v);
+      if (!pick(result.prologue,['hide','drown','call','froze']) || !pick(result.phone,['play','press','silent']) || !pick(result.route,['hotel','station'])) throw Error('Некорректный выбор главы I');
+      if (!ids(result.scraps,['date','pier','initial']) || !Number.isInteger(result.burned) || result.burned < 0 || result.burned > 3 || result.scraps.length + result.burned > 3) throw Error('Некорректные обрывки');
+      if (result.cache !== result.clues.includes('note')) throw Error('Тайник без записки');
+      if ((result.scraps.length || result.burned) && !result.bin) throw Error('Обрывки без корзины');
+      if ((result.finished || result.route) && !(result.prologue && result.phone && result.cache && result.deductions.includes('fresh'))) throw Error('Глава I не готова к завершению');
+    }
     if (n === 2) {
       if (![null,'station','hotel'].includes(result.route) || (result.cabinet && !result.key)) throw Error('Некорректный маршрут или шкаф');
       if ((result.finished || result.route) && !(result.deductions.length === 3 && result.clues.includes('record'))) throw Error('Глава II не готова к завершению');
@@ -50,7 +59,7 @@
     if (!plain(input) || !plain(input.chapters) || !branches.includes(input.branch) || typeof input.label!=='string' || input.label.length>200) throw Error('Некорректное прохождение');
     const chapters = {};
     for (const [n,state] of Object.entries(input.chapters)) {
-      if (!/^[2-8]$/.test(n)) throw Error('Неизвестная глава');
+      if (!/^[1-8]$/.test(n)) throw Error('Неизвестная глава');
       chapters[n]=validateChapter(Number(n),state);
       if (Number(n)>=5 && chapters[n].branch!==input.branch) throw Error('Смешаны сюжетные ветки');
     }
@@ -209,7 +218,7 @@
     document.addEventListener('click',event=>{
       const a=event.target.closest('a[href]');if(!a)return;
       const u=new URL(a.href,root.location.href);
-      if(u.origin===root.location.origin && /\/(index|chapter[3-8]|saves)\.html$/.test(u.pathname) && api.session){u.searchParams.set('run',api.session.runId);a.href=u.href;}
+      if(u.origin===root.location.origin && /\/(index|chapter[1-8]|saves)\.html$/.test(u.pathname) && api.session){u.searchParams.set('run',api.session.runId);a.href=u.href;}
     },true);
     document.addEventListener('DOMContentLoaded',()=>{
       const footer=document.querySelector('.intro-foot');

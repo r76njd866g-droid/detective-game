@@ -15,8 +15,8 @@ class Storage {
 const fixture=()=>{const storage=new Storage();let id=0;const store=createStore(storage,{uuid:()=>`id-${++id}`,now:()=> '2026-10-22T10:00:00.000Z'});return {store,storage};};
 const fresh=n=>validateChapter(n,n>=5?{branch:'originals'}:{});
 const warehouse=branch=>({clues:['invoice','manifest','loading','departure','phone'],deductions:['cargo','split'],crate:true,plan:branch,finished:branch,seenOutcomes:[branch],started:true});
-test('inline scripts parse in all seven unchanged chapter URLs',()=>{
-  for(let n=2;n<=8;n++){
+test('inline scripts parse in all chapter URLs, I–VIII',()=>{
+  for(let n=1;n<=8;n++){
     const s=fs.readFileSync(n===2?'index.html':`chapter${n}.html`,'utf8');
     for(const m of s.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
     for(const m of s.matchAll(/(?:src|href)="([^"?]+)(?:\?[^"<>]*)?"/g))if(!m[1].startsWith('data:')&&!m[1].includes('${')&&!m[1].startsWith('#'))assert.ok(fs.existsSync(m[1]),m[1]);
@@ -123,4 +123,32 @@ test('validation metadata agrees with the existing chapter scenario objects',()=
     assert.equal(JSON.stringify(spec.options),JSON.stringify(c.puzzle.fields.map(f=>f.options.length)));
     assert.equal(JSON.stringify(spec.correct),JSON.stringify(c.puzzle.fields.map(f=>f.answer)));
   }
+});
+const chapterOneDone=(over={})=>({clues:['ledger','glass','note'],deductions:['fresh'],prologue:'hide',phone:'play',scraps:['date'],burned:1,bin:true,cache:true,route:'hotel',finished:true,started:true,...over});
+test('chapter I: defaults, every prologue/phone/route combination and scrap counts validate',()=>{
+  assert.deepEqual(validateChapter(1,{}),{clues:[],deductions:[],prologue:null,phone:null,scraps:[],burned:0,bin:false,cache:false,route:null,finished:false,started:false});
+  for(const prologue of ['hide','drown','call','froze'])for(const phone of ['play','press','silent'])for(const route of ['hotel','station'])for(let burned=0;burned<=3;burned++){
+    const scraps=['date','pier','initial'].slice(0,3-burned);
+    assert.equal(validateChapter(1,chapterOneDone({prologue,phone,route,burned,scraps})).route,route);
+  }
+});
+test('chapter I: invalid choices and impossible states are rejected',()=>{
+  for(const bad of [{prologue:'swim'},{phone:'shout'},{route:'pier'},{scraps:['date','date']},{scraps:['ash']},{burned:4},{burned:2,scraps:['date','pier']},{bin:false},{cache:false},{deductions:[]},{prologue:null},{phone:null}])
+    assert.throws(()=>validateChapter(1,chapterOneDone(bad)),JSON.stringify(bad));
+  assert.throws(()=>validateChapter(1,{clues:['glass'],deductions:['fresh']}));
+});
+test('chapter I is optional: old runs keep working and later chapters see no chapter I',()=>{
+  const {store}=fixture();
+  const old=store.open(2);assert.equal(old.previous(1),null);old.save({...fresh(2),clues:['report']});
+  const run=old.runId;const later=store.open(5,run);assert.equal(later.previous(1),null);assert.equal(later.branch,'originals');
+  assert.deepEqual(validateRun({label:'x',branch:'belov',chapters:{2:fresh(2)}}).chapters[1],undefined);
+});
+test('chapter I state survives restarting chapter II and travels with export/import',()=>{
+  const {store}=fixture();
+  const one=store.open(1);assert.ok(one.save(chapterOneDone()));
+  const two=store.open(2,one.runId);assert.deepEqual(two.previous(1),chapterOneDone());
+  two.restart();two.save(fresh(2));assert.deepEqual(two.previous(1),chapterOneDone());
+  const target=fixture().store;const imported=target.importProgress(store.exportAll());
+  assert.ok(imported.some(r=>JSON.stringify(r.data.chapters[1])===JSON.stringify(chapterOneDone())));
+  one.restart();assert.equal(one.load(),null);
 });

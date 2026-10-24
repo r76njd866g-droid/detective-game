@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {serve, playwright, ROOT} from './lib/server.mjs';
+import {playChapterOne} from './chapter1_check.mjs';
 
 const results = [];
 const pass = name => { results.push(name); console.log('PASS:', name); };
@@ -16,6 +17,7 @@ const text = (page, sel) => page.locator(sel).first().textContent();
 function ui(page, touch) {
   const press = async loc => (touch ? loc.tap() : loc.click());
   const u = {
+    touch,
     press,
     sel: s => press(page.locator(s).first()),
     close: () => page.keyboard.press('Escape'),
@@ -33,8 +35,13 @@ function ui(page, touch) {
   return u;
 }
 
-async function chapter2(page, u, route) {
-  await page.goto(BASE + 'index.html'); await u.sel('#enter');
+async function chapter2(page, u, route, one) {
+  if (one) {
+    await playChapterOne(page, {...one, touch: u.touch, base: BASE});
+    await u.sel('#finalModal a[href^="index.html"]'); await page.waitForURL(/index\.html\?run=/);
+    assert.ok((await text(page, '#chapterOneEcho')).length > 20);
+  } else await page.goto(BASE + 'index.html');
+  await u.sel('#enter');
   for (const o of ['report', 'notice', 'clock', 'typewriter']) await u.object(o);
   for (const d of ['power', 'call']) { await u.sel('[data-object="phone"]'); await u.sel(`[data-doc="${d}"]`); await u.close(); }
   await u.object('key'); await u.object('cabinet');
@@ -77,7 +84,7 @@ async function chapter4(page, u, branch) {
   await u.next(5);
 }
 
-async function laterChapter(page, u, n, branch) {
+async function laterChapter(page, u, n, branch, one) {
   const C = await page.evaluate('C');
   assert.equal(await text(page, '#branchIntro'), C.branchIntro[branch]);
   for (const d of C.docs) await u.object(d.id);
@@ -91,6 +98,8 @@ async function laterChapter(page, u, n, branch) {
   await u.sel('#puzzleForm button[type="submit"]'); await u.sel('#finish');
   if (n === 8) {
     assert.ok((await text(page, '#content')).includes(C.endingBranch[branch]));
+    assert.equal((await text(page, '#content')).includes('с другой стороны'), !!one);
+    if (one) assert.ok((await text(page, '#content')).includes(C.replay.steps[one.phone]));
     await u.resume(); await u.sel('#journal'); await u.sel('[data-puzzle]'); assert.match(await text(page, '#content'), /Берег остаётся городским/);
   } else await u.next(n + 1);
 }
@@ -104,15 +113,17 @@ async function main() {
   const browser = await chromium.launch();
   try {
     // Full playthroughs: desktop mouse and phone touch, both endings and both chapter III routes.
-    for (const [branch, route, device] of [['originals', 'station', 'desktop'], ['belov', 'hotel', 'phone'], ['originals', 'hotel', 'phone'], ['belov', 'station', 'desktop']]) {
+    const withOne = {desktop0: {prologue: 'hide', phone: 'press', route: 'hotel'}, phone1: {prologue: 'call', phone: 'silent', route: 'station'}};
+    for (const [index, [branch, route, device]] of [['originals', 'station', 'desktop'], ['belov', 'hotel', 'phone'], ['originals', 'hotel', 'phone'], ['belov', 'station', 'desktop']].entries()) {
+      const one = withOne[device + index];
       const touch = device === 'phone';
       const context = await browser.newContext(touch ? {viewport: {width: 360, height: 740}, isMobile: true, hasTouch: true} : {viewport: {width: 1440, height: 1000}});
       const page = await context.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
       const u = ui(page, touch);
-      await chapter2(page, u, route); await chapter3(page, u, route); await chapter4(page, u, branch);
-      for (let n = 5; n <= 8; n++) await laterChapter(page, u, n, branch);
+      await chapter2(page, u, route, one); await chapter3(page, u, route); await chapter4(page, u, branch);
+      for (let n = 5; n <= 8; n++) await laterChapter(page, u, n, branch, one);
       assert.deepEqual(errors, []);
-      pass(`II–VIII via UI (${device}), ending "${branch}", III from ${route}, reloads, wrong answers and final`);
+      pass(`${one ? 'I–VIII' : 'II–VIII (old save, no chapter I)'} via UI (${device}), ending "${branch}", III from ${route}${one ? `, prologue ${one.prologue}, phone ${one.phone}` : ''}, reloads, wrong answers and final`);
       if (device === 'phone') { await context.close(); continue; }
 
       const oldRun = runId(page), old = await snapshot(page, oldRun);
@@ -143,7 +154,7 @@ async function main() {
       await ip.locator('#import').setInputFiles(file);
       await ip.locator('#status').filter({hasText: 'Добавлено прохождений'}).waitFor();
       assert.equal(await ip.locator('.entry').count(), exported.runs.length);
-      await ip.locator('.entry').filter({hasText: 'Сохранённые главы: 2, 3, 4, 5, 6, 7, 8'}).locator('a').last().click();
+      await ip.locator('.entry').filter({hasText: /Сохранённые главы: (1, )?2, 3, 4, 5, 6, 7, 8/}).locator('a').last().click();
       await ip.locator('#resume').click(); await ip.locator('#review').click();
       assert.match(await text(ip, '#content'), /Берег остаётся городским/);
       pass(`file export/import restores the finished case (${branch})`);
@@ -169,13 +180,14 @@ async function main() {
     // Direct entry without saved data, desktop and phone.
     for (const [w, h] of [[1440, 1000], [390, 844]]) {
       const context = await browser.newContext({viewport: {width: w, height: h}}); const p = await context.newPage(); const errors = []; p.on('pageerror', e => errors.push(String(e)));
-      for (let n = 2; n <= 8; n++) {
+      for (let n = 1; n <= 8; n++) {
         await p.goto(BASE + (n === 2 ? 'index.html' : `chapter${n}.html`));
         await p.locator(n === 3 ? '[data-start="station"]' : '#enter').click();
-        await p.locator('#journal').click(); await p.keyboard.press('Escape');
+        if (n === 1) await p.locator('#objectModal.open [data-prologue]').first().waitFor();
+        else { await p.locator('#journal').click(); await p.keyboard.press('Escape'); }
         assert.ok(await p.evaluate('document.querySelector(".scene-frame img").naturalWidth') > 0);
       }
-      assert.deepEqual(errors, []); pass(`direct start and journal in all seven chapters, ${w}×${h}`);
+      assert.deepEqual(errors, []); pass(`direct start in all eight chapters (I–VIII), ${w}×${h}`);
       await context.close();
     }
 

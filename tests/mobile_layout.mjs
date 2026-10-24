@@ -12,7 +12,7 @@ export const VIEWPORTS = [
   ['Laptop', 1024, 700], ['Desktop', 1440, 900]
 ];
 const PAGES = [
-  ['index.html', null], ['chapter3.html', 'station'], ['chapter3.html', 'hotel'], ['chapter4.html', null],
+  ['chapter1.html', 'prologue'], ['chapter1.html', 'office'], ['index.html', null], ['chapter3.html', 'station'], ['chapter3.html', 'hotel'], ['chapter4.html', null],
   ['chapter5.html', null], ['chapter6.html', null], ['chapter7.html', null], ['chapter8.html', null]
 ];
 
@@ -72,7 +72,31 @@ export async function enter(page, file, scene, problems = [], touch = true) {
   try { await (touch ? button.tap({timeout: 3000}) : button.click({timeout: 3000})); }
   catch { problems.push('intro start button cannot be tapped (outside viewport / not scrollable)'); await button.dispatchEvent('click'); }
   await page.locator('#game').waitFor({state: 'visible'});
+  if (file === 'chapter1.html') {
+    await page.locator('#objectModal.open [data-prologue]').first().waitFor();
+    if (scene === 'office') {
+      const tap = sel => (touch ? page.locator(sel).first().tap() : page.locator(sel).first().click());
+      await tap('[data-prologue="hide"]'); await tap('#toTitle'); await tap('#titleNext');
+      await page.locator('.hotspot[data-object="ledger"]').waitFor();
+    }
+  }
 }
+
+// Prologue: the choice dialog over the pier scene must fit, and every choice must be tappable.
+const PROLOGUE_AUDIT = ({vw, vh}) => {
+  const out = [], fr = document.querySelector('.scene-frame').getBoundingClientRect();
+  if (Math.abs(fr.width / fr.height - 1.5) > 0.04) out.push(`scene distorted: ${fr.width.toFixed(0)}×${fr.height.toFixed(0)}`);
+  if (document.documentElement.scrollWidth > vw + 1 || innerWidth > vw) out.push('horizontal overflow');
+  const dialog = document.querySelector('.modal.open [role=dialog]'), d = dialog.getBoundingClientRect();
+  if (d.left < -1 || d.right > vw + 1 || d.top < -1 || d.bottom > vh + 1) out.push('prologue dialog outside viewport');
+  for (const b of dialog.querySelectorAll('.choice, #disableTimer')) {
+    b.scrollIntoView({block: 'nearest'});
+    const r = b.getBoundingClientRect(), hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    if (!(hit === b || b.contains(hit))) out.push(`choice "${b.textContent.trim().slice(0, 25)}" not tappable`);
+    if (r.right > d.right + 1) out.push(`choice "${b.textContent.trim().slice(0, 25)}" clipped`);
+  }
+  return out;
+};
 
 async function main() {
   const shots = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
@@ -93,6 +117,12 @@ async function main() {
         const introProblems = [];
         await enter(page, file, scene, introProblems, width < 1000);
         await page.waitForTimeout(150);
+        if (scene === 'prologue') {
+          const problems = [...introProblems, ...(await page.evaluate(PROLOGUE_AUDIT, {vw: width, vh: height})), ...errors.map(e => 'JS error: ' + e)];
+          if (shots) await page.screenshot({path: `${shots}/${device.replace(/\W+/g, '_')}-chapter1-prologue.png`});
+          for (const p of problems) failures.push(`${device} ${width}×${height} chapter1.html [prologue]: ${p}`);
+          checked++; await page.close(); continue;
+        }
         const {problems, hotspots} = await page.evaluate(AUDIT, {vw: width, vh: height});
         problems.unshift(...introProblems);
         // Real taps on every hotspot centre must open that object's dialog.

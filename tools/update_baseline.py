@@ -11,7 +11,7 @@ digest = lambda value: hashlib.sha256(value.encode()).hexdigest()
 PREFIXES = ('function ending(', 'function conclude(', 'function route(', 'function decision(', 'function previewPlan(', 'function operation(', 'function witness(', 'function doc(', 'function sceneObject(', 'function puzzle(', 'function success(')
 INCLUDES = '<script src="save-specs.js"></script>\n<script src="save-store.js"></script>\n'
 baseline = {}
-for name in ['index.html'] + [f'chapter{n}.html' for n in range(3, 9)]:
+for name in ['chapter1.html', 'index.html'] + [f'chapter{n}.html' for n in range(3, 9)]:
     source = Path(name).read_text()
     entry = {'html': digest(re.sub(r'<script\b[^>]*>.*?</script>', '', source.replace(INCLUDES, ''), flags=re.S))}
     js = next(s for s in re.findall(r'<script\b[^>]*>(.*?)</script>', source, re.S) if 'const $=' in s)

@@ -7,6 +7,7 @@ node tests/saves.test.js
 python tests/static_check.py
 python tests/story_check.py
 node tests/browser_check.mjs
+node tests/chapter1_check.mjs  # --quick: выборка комбинаций
 node tests/mobile_layout.mjs   # --shots work/shots сохраняет снимки экранов
 ```
 
